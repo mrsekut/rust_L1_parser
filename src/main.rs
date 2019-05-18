@@ -96,6 +96,11 @@ fn lex(input: &str) -> Result<Vec<Token>, LexError> {
     while pos < input.len() {
         match input[pos] {
             b'+' => lex_a_token!(lex_plus(input, pos)),
+            b'-' => lex_a_token!(lex_minus(input, pos)),
+            b'*' => lex_a_token!(lex_asterisc(input, pos)),
+            b'/' => lex_a_token!(lex_slash(input, pos)),
+            b'(' => lex_a_token!(lex_lparen(input, pos)),
+            b')' => lex_a_token!(lex_rparen(input, pos)),
             b => return Err(LexError::invalid_char(b as char, Loc(pos, pos + 1))),
         }
     }
@@ -121,17 +126,41 @@ fn lex_plus(input: &[u8], start: usize) -> Result<(Token, usize), LexError> {
     consume_byte(input, start, b'+').map(|(_, end)| (Token::plus(Loc(start, end)), end))
 }
 
+fn lex_minus(input: &[u8], start: usize) -> Result<(Token, usize), LexError> {
+    consume_byte(input, start, b'-').map(|(_, end)| (Token::minus(Loc(start, end)), end))
+}
+
+fn lex_asterisc(input: &[u8], start: usize) -> Result<(Token, usize), LexError> {
+    consume_byte(input, start, b'*').map(|(_, end)| (Token::asterisk(Loc(start, end)), end))
+}
+
+fn lex_slash(input: &[u8], start: usize) -> Result<(Token, usize), LexError> {
+    consume_byte(input, start, b'/').map(|(_, end)| (Token::slash(Loc(start, end)), end))
+}
+
+fn lex_lparen(input: &[u8], start: usize) -> Result<(Token, usize), LexError> {
+    consume_byte(input, start, b'(').map(|(_, end)| (Token::lparen(Loc(start, end)), end))
+}
+
+fn lex_rparen(input: &[u8], start: usize) -> Result<(Token, usize), LexError> {
+    consume_byte(input, start, b')').map(|(_, end)| (Token::rparen(Loc(start, end)), end))
+}
+
 fn main() {
-    // println!("{:?}", lex("+"));
+    println!("{:?}", lex("+-*()"));
 }
 
 #[test]
 fn test_lexer() {
     assert_eq!(
-        lex("+"),
-        Ok(vec![Annot {
-            value: TokenKind::Plus,
-            loc: Loc(0, 1)
-        }])
+        lex("+-*/()"),
+        Ok(vec![
+            Token::plus(Loc(0, 1)),
+            Token::minus(Loc(1, 2)),
+            Token::asterisk(Loc(2, 3)),
+            Token::slash(Loc(3, 4)),
+            Token::lparen(Loc(4, 5)),
+            Token::rparen(Loc(5, 6)),
+        ])
     )
 }
