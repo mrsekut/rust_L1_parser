@@ -1,7 +1,7 @@
 [package]
-name = "rparser"
+name = "rust_L1_parser"
 version = "0.1.0"
-authors = ["mrsekut <k.cloudspider@gmail.com>"]
+authors = ["mrsekut <k.marumaru524@gmail.com>"]
 edition = "2018"
 
 [dependencies]
