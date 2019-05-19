@@ -172,10 +172,6 @@ fn lex_rparen(input: &[u8], start: usize) -> Result<(Token, usize), LexError> {
     consume_byte(input, start, b')').map(|(_, end)| (Token::rparen(Loc(start, end)), end))
 }
 
-fn main() {
-    println!("{:?}", lex("(1 + 2) * 3 - -8 / 1"));
-}
-
 #[test]
 fn test_lexer() {
     assert_eq!(
@@ -195,4 +191,34 @@ fn test_lexer() {
             Token::number(1, Loc(19, 20)),
         ])
     )
+}
+
+use std::io;
+
+fn prompt(s: &str) -> io::Result<()> {
+    use std::io::{stdout, Write};
+
+    let stdout = stdout();
+    let mut stdout = stdout.lock();
+    stdout.write(s.as_bytes())?;
+    stdout.flush()
+}
+
+fn main() {
+    use std::io::{stdin, BufRead, BufReader};
+
+    let stdin = stdin();
+    let stdin = stdin.lock();
+    let stdin = BufReader::new(stdin);
+    let mut lines = stdin.lines();
+
+    loop {
+        prompt("> ").unwrap();
+        if let Some(Ok(line)) = lines.next() {
+            let token = lex(&line);
+            println!("{:?}", token);
+        } else {
+            break;
+        }
+    }
 }
