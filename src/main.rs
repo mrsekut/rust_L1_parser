@@ -1,4 +1,5 @@
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
+
 struct Loc(usize, usize);
 
 impl Loc {
@@ -95,12 +96,17 @@ fn lex(input: &str) -> Result<Vec<Token>, LexError> {
     }
     while pos < input.len() {
         match input[pos] {
+            b'0'...b'9' => lex_a_token!(lex_number(input, pos)),
             b'+' => lex_a_token!(lex_plus(input, pos)),
             b'-' => lex_a_token!(lex_minus(input, pos)),
             b'*' => lex_a_token!(lex_asterisc(input, pos)),
             b'/' => lex_a_token!(lex_slash(input, pos)),
             b'(' => lex_a_token!(lex_lparen(input, pos)),
             b')' => lex_a_token!(lex_rparen(input, pos)),
+            b' ' | b'\n' | b'\t' => {
+                let ((), p) = skip_spaces(input, pos)?;
+                pos = p;
+            }
             b => return Err(LexError::invalid_char(b as char, Loc(pos, pos + 1))),
         }
     }
@@ -120,6 +126,26 @@ fn consume_byte(input: &[u8], pos: usize, b: u8) -> Result<(u8, usize), LexError
     }
 
     Ok((b, pos + 1))
+}
+
+fn lex_number(input: &[u8], pos: usize) -> Result<(Token, usize), LexError> {
+    use core::str::from_utf8;
+    let start = pos;
+    let end = recognize_many(input, pos, |b| b"0123456789".contains(&b));
+    let n = from_utf8(&input[start..end]).unwrap().parse().unwrap();
+    Ok((Token::number(n, Loc(start, end)), end))
+}
+
+fn skip_spaces(input: &[u8], pos: usize) -> Result<((), usize), LexError> {
+    let pos = recognize_many(input, pos, |b| b" \n\t".contains(&b));
+    Ok(((), pos))
+}
+
+fn recognize_many(input: &[u8], mut pos: usize, mut f: impl FnMut(u8) -> bool) -> usize {
+    while pos < input.len() && f(input[pos]) {
+        pos += 1;
+    }
+    pos
 }
 
 fn lex_plus(input: &[u8], start: usize) -> Result<(Token, usize), LexError> {
@@ -147,20 +173,26 @@ fn lex_rparen(input: &[u8], start: usize) -> Result<(Token, usize), LexError> {
 }
 
 fn main() {
-    println!("{:?}", lex("+-*()"));
+    println!("{:?}", lex("(1 + 2) * 3 - -8 / 1"));
 }
 
 #[test]
 fn test_lexer() {
     assert_eq!(
-        lex("+-*/()"),
+        lex("(1 + 2) * 3 - -8 / 1"),
         Ok(vec![
-            Token::plus(Loc(0, 1)),
-            Token::minus(Loc(1, 2)),
-            Token::asterisk(Loc(2, 3)),
-            Token::slash(Loc(3, 4)),
-            Token::lparen(Loc(4, 5)),
-            Token::rparen(Loc(5, 6)),
+            Token::lparen(Loc(0, 1)),
+            Token::number(1, Loc(1, 2)),
+            Token::plus(Loc(3, 4)),
+            Token::number(2, Loc(5, 6)),
+            Token::rparen(Loc(6, 7)),
+            Token::asterisk(Loc(8, 9)),
+            Token::number(3, Loc(10, 11)),
+            Token::minus(Loc(12, 13)),
+            Token::minus(Loc(14, 15)),
+            Token::number(8, Loc(15, 16)),
+            Token::slash(Loc(17, 18)),
+            Token::number(1, Loc(19, 20)),
         ])
     )
 }
