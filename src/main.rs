@@ -21,8 +21,9 @@ fn main() {
     loop {
         prompt("> ").unwrap();
         if let Some(Ok(line)) = lines.next() {
-            let token = lexer::lex(&line);
-            println!("{:?}", token);
+            let tokens = lexer::lex(&line);
+            let ast = lexer::parse(tokens).unwrap();
+            println!("{:?}", ast);
         } else {
             break;
         }
