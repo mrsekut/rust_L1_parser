@@ -1,4 +1,5 @@
 mod lexer;
+mod parser;
 use std::io;
 
 fn prompt(s: &str) -> io::Result<()> {
@@ -21,8 +22,8 @@ fn main() {
     loop {
         prompt("> ").unwrap();
         if let Some(Ok(line)) = lines.next() {
-            let tokens = lexer::lex(&line);
-            let ast = lexer::parse(tokens).unwrap();
+            let tokens = lexer::lex(&line).unwrap();
+            let ast = parser::parse(tokens).unwrap();
             println!("{:?}", ast);
         } else {
             break;
