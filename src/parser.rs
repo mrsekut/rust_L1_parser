@@ -7,7 +7,7 @@ pub enum AstKind {
     BinOp { op: BinOp, l: Box<Ast>, r: Box<Ast> },
 }
 
-type Ast = Annot<AstKind>;
+pub type Ast = Annot<AstKind>;
 
 impl Ast {
     fn num(n: u64, loc: Loc) -> Self {
