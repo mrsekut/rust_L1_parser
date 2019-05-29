@@ -1,3 +1,4 @@
+use crate::lexer::Token;
 use crate::lexer::{LexError, LexErrorKind, Loc, TokenKind};
 use crate::parser::ParseError;
 
@@ -90,5 +91,42 @@ impl StdError for Error {
             Lexer(lex) => Some(lex),
             Parser(parse) => Some(parse),
         }
+    }
+}
+
+fn print_annot(input: &str, loc: Loc) {
+    eprintln!("{}", input);
+    eprintln!("{}{}", " ".repeat(loc.0), "^".repeat(loc.1 - loc.0));
+}
+
+impl Error {
+    pub fn show_diagnostic(&self, input: &str) {
+        use self::Error::*;
+        use self::ParseError as P;
+        let (e, loc): (&StdError, Loc) = match self {
+            Lexer(e) => (e, e.loc.clone()),
+            Parser(e) => {
+                let loc = match e {
+                    P::UnexpectedToken(Token { loc, .. })
+                    | P::NotExpression(Token { loc, .. })
+                    | P::NotOperator(Token { loc, .. })
+                    | P::UnclosedOpenParen(Token { loc, .. }) => loc.clone(),
+                    P::RedundantExpression(Token { loc, .. }) => Loc(loc.0, input.len()),
+                    P::Eof => Loc(input.len(), input.len() + 1),
+                };
+                (e, loc)
+            }
+        };
+        eprintln!("{}", e);
+        print_annot(input, loc);
+    }
+}
+
+pub fn show_trace<E: StdError>(e: E) {
+    eprintln!("{}", e);
+    let mut source = e.source();
+    while let Some(e) = source {
+        eprintln!("caused by {}", e);
+        source = e.source()
     }
 }

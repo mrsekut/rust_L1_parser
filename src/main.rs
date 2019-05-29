@@ -1,6 +1,7 @@
 mod error;
 mod lexer;
 mod parser;
+use crate::error::show_trace;
 use std::error::Error;
 use std::io;
 
@@ -27,12 +28,8 @@ fn main() {
             let ast = match line.parse::<parser::Ast>() {
                 Ok(ast) => ast,
                 Err(e) => {
-                    eprintln!("{}", e);
-                    let mut source = e.source();
-                    while let Some(e) = source {
-                        eprintln!("caused by {}", e);
-                        source = e.source()
-                    }
+                    e.show_diagnostic(&line);
+                    show_trace(e);
                     continue;
                 }
             };
