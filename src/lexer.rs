@@ -1,5 +1,5 @@
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub struct Loc(usize, usize);
+pub struct Loc(pub usize, pub usize);
 
 impl Loc {
     pub fn merge(&self, other: &Loc) -> Loc {

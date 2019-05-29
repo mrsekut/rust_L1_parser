@@ -1,4 +1,4 @@
-use crate::lexer::{Annot, Loc, Token, TokenKind};
+use crate::lexer::{lex, Annot, Loc, Token, TokenKind};
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum AstKind {
@@ -27,6 +27,17 @@ impl Ast {
             },
             loc,
         )
+    }
+}
+
+use crate::error;
+use std::str::FromStr;
+impl FromStr for Ast {
+    type Err = error::Error;
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let tokens = lex(s)?;
+        let ast = parse(tokens)?;
+        Ok(ast)
     }
 }
 
@@ -81,7 +92,7 @@ pub enum ParseError {
     UnexpectedToken(Token),
     NotExpression(Token),
     NotOperator(Token),
-    UnclosedOpenParser(Token),
+    UnclosedOpenParen(Token),
     RedundantExpression(Token),
     Eof,
 }
@@ -213,7 +224,7 @@ where
                         ..
                     }) => Ok(e),
                     Some(t) => Err(ParseError::RedundantExpression(t)),
-                    _ => Err(ParseError::UnclosedOpenParser(tok)),
+                    _ => Err(ParseError::UnclosedOpenParen(tok)),
                 }
             }
             _ => Err(ParseError::NotExpression(tok)),

@@ -1,6 +1,7 @@
 mod error;
 mod lexer;
 mod parser;
+use std::error::Error;
 use std::io;
 
 fn prompt(s: &str) -> io::Result<()> {
@@ -25,7 +26,15 @@ fn main() {
         if let Some(Ok(line)) = lines.next() {
             let ast = match line.parse::<parser::Ast>() {
                 Ok(ast) => ast,
-                Err(e) => unimplemented!(),
+                Err(e) => {
+                    eprintln!("{}", e);
+                    let mut source = e.source();
+                    while let Some(e) = source {
+                        eprintln!("caused by {}", e);
+                        source = e.source()
+                    }
+                    continue;
+                }
             };
             println!("{:?}", ast);
         } else {
