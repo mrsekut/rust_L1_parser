@@ -1,4 +1,5 @@
 mod error;
+mod interpreter;
 mod lexer;
 mod parser;
 use crate::error::show_trace;
@@ -15,7 +16,9 @@ fn prompt(s: &str) -> io::Result<()> {
 }
 
 fn main() {
+    use crate::interpreter::Interpreter;
     use std::io::{stdin, BufRead, BufReader};
+    let mut interp = Interpreter::new();
 
     let stdin = stdin();
     let stdin = stdin.lock();
@@ -33,7 +36,15 @@ fn main() {
                     continue;
                 }
             };
-            println!("{:?}", ast);
+            let n = match interp.eval(&ast) {
+                Ok(n) => n,
+                Err(e) => {
+                    e.show_diagnostic(&line);
+                    show_trace(e);
+                    continue;
+                }
+            };
+            println!("{}", n);
         } else {
             break;
         }

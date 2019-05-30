@@ -42,7 +42,7 @@ impl FromStr for Ast {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
-enum UniOpKind {
+pub enum UniOpKind {
     Plus,
     Minus,
 }
@@ -60,7 +60,7 @@ impl UniOp {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
-enum BinOpKind {
+pub enum BinOpKind {
     Add,
     Sub,
     Mult,

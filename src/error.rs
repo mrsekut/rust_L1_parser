@@ -1,5 +1,4 @@
-use crate::lexer::Token;
-use crate::lexer::{LexError, LexErrorKind, Loc, TokenKind};
+use crate::lexer::{Annot, LexError, LexErrorKind, Loc, Token, TokenKind};
 use crate::parser::ParseError;
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
@@ -128,5 +127,39 @@ pub fn show_trace<E: StdError>(e: E) {
     while let Some(e) = source {
         eprintln!("caused by {}", e);
         source = e.source()
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub enum InterpreterErrorKind {
+    DivisionByZero,
+}
+
+pub type InterpreterError = Annot<InterpreterErrorKind>;
+
+impl fmt::Display for InterpreterError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        use self::InterpreterErrorKind::*;
+        match self.value {
+            DivisionByZero => write!(f, "division by zero"),
+        }
+    }
+}
+
+impl StdError for InterpreterError {
+    fn description(&self) -> &str {
+        use self::InterpreterErrorKind::*;
+        match self.value {
+            DivisionByZero => "the right hand expression of the division evaluates to zero",
+        }
+    }
+}
+
+impl InterpreterError {
+    pub fn show_diagnostic(&self, input: &str) {
+        // エラー情報を簡単に表示し
+        eprintln!("{}", self);
+        // エラー位置を指示する
+        print_annot(input, self.loc.clone());
     }
 }
