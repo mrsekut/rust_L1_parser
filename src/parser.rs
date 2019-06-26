@@ -164,11 +164,11 @@ where
                     Token {
                         value: TokenKind::Asterisk,
                         loc,
-                    } => BinOp::add(loc),
+                    } => BinOp::mult(loc),
                     Token {
                         value: TokenKind::Slash,
                         loc,
-                    } => BinOp::sub(loc),
+                    } => BinOp::div(loc),
                     _ => unreachable!(),
                 };
                 let r = parse_expr1(tokens)?;

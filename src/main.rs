@@ -1,3 +1,4 @@
+mod compiler;
 mod error;
 mod interpreter;
 mod lexer;
@@ -16,9 +17,11 @@ fn prompt(s: &str) -> io::Result<()> {
 }
 
 fn main() {
+    use crate::compiler::RpnCompiler;
     use crate::interpreter::Interpreter;
     use std::io::{stdin, BufRead, BufReader};
     let mut interp = Interpreter::new();
+    let mut compiler = RpnCompiler::new();
 
     let stdin = stdin();
     let stdin = stdin.lock();
@@ -36,6 +39,7 @@ fn main() {
                     continue;
                 }
             };
+            println!("{:?}", ast);
             let n = match interp.eval(&ast) {
                 Ok(n) => n,
                 Err(e) => {
@@ -45,6 +49,8 @@ fn main() {
                 }
             };
             println!("{}", n);
+            let rpn = compiler.compile(&ast);
+            println!("{}", rpn);
         } else {
             break;
         }
